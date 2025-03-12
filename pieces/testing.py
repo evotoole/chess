@@ -46,6 +46,23 @@ class TestGame(unittest.TestCase):
         self.assertTrue(r1.checkmate())
 
 
+       
+
+        
+        
+        #TODO test for stale mate (not implemented yet)
+        #TODO test for castling (not implemented yet)
+        #TODO Testing a game that ends in a draw (insufficient material, threefold repetition, 50 move rule, etc.)
+        #TODO test for pawn promotion (not implemented yet)
+        #TODO test for en passant (not implemented yet)
+
+        
+
+
+
+
+    
+
 
 if __name__ == '__main__':
     unittest.main()
