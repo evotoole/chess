@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Game</title>
+</head>
+<body>
+
+    <h1>Multiplayer Game</h1>
+
+    <!-- Create Game Section -->
+    <button id="createGameBtn">Create Game</button>
+    <div id="createGameResult"></div>
+
+    <hr>
+
+    <!-- Join Game Section -->
+    <input type="text" id="sessionIdInput" placeholder="Enter Session ID">
+    <button id="joinGameBtn">Join Game</button>
+    <div id="joinGameResult"></div>
+
+    <hr>
+
+    <!-- Game Interaction Section (WebSocket) -->
+    <div id="gameSection" style="display: none;">
+        <h2>Game in Progress</h2>
+        <p id="gameInfo"></p>
+        <input type="text" id="moveInput" placeholder="Enter your move">
+        <button id="sendMoveBtn">Send Move</button>
+    </div>
+
+    <script>
+        let playerId = null;  // Player ID after creation or joining
+        let sessionId = null; // Session ID of the current match
+        let ws = null;        // WebSocket connection for the game
+
+        // 1. Create Game
+        document.getElementById('createGameBtn').addEventListener('click', async () => {
+            const response = await fetch('/pvp/create-game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            sessionId = data.session_id;
+            playerId = data.player_id;
+            document.getElementById('createGameResult').innerText = `Game Created! Session ID: ${sessionId}, Player ID: ${playerId}`;
+            document.getElementById('gameSection').style.display = 'block';
+            startWebSocket();
+        });
+
+        // 2. Join Game
+        document.getElementById('joinGameBtn').addEventListener('click', async () => {
+            const enteredSessionId = document.getElementById('sessionIdInput').value;
+            if (!enteredSessionId) {
+                alert('Please enter a session ID');
+                return;
+            }
+
+            const response = await fetch(`/pvp/join-game?session_id=${enteredSessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            playerId = data.player_id;
+            sessionId = enteredSessionId;
+            document.getElementById('joinGameResult').innerText = `Joined Game! Player ID: ${playerId}`;
+            document.getElementById('gameSection').style.display = 'block';
+            startWebSocket();
+        });
+
+        // 3. Start WebSocket Communication
+        function startWebSocket() {
+            // Create a WebSocket connection to the backend
+            ws = new WebSocket(`ws://localhost:8000/pvp/${sessionId}`);
+
+            // Handle messages from the server
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received from server:', data);
+                // You can update the game state or UI here based on the data
+                document.getElementById('gameInfo').innerText = `Waiting for move from ${data.current_turn}`;
+            };
+
+            // Handle WebSocket errors
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            // Handle WebSocket closure
+            ws.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+        }
+
+        // 4. Send Player Move
+        document.getElementById('sendMoveBtn').addEventListener('click', () => {
+            const move = document.getElementById('moveInput').value;
+            if (!move) {
+                alert('Please enter a move');
+                return;
+            }
+
+            // Send move to the server
+            const playerData = {
+                player_id: playerId,
+                move: move,
+            };
+
+            ws.send(JSON.stringify(playerData));
+            document.getElementById('moveInput').value = ''; // Clear input
+        });
+    </script>
+
+</body>
+</html>

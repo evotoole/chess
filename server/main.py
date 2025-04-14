@@ -1,11 +1,13 @@
 from fastapi import FastAPI, WebSocket, WebSocketException, WebSocketDisconnect
 from starlette.websockets import WebSocketClose
-
-from server.illegal_match_access_error import IllegalMatchAccessException
-from server.match_making import Match, MatchMaking
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from illegal_match_access_error import IllegalMatchAccessException
+from match_making import Match, MatchMaking
 
 app = FastAPI()
 mm = MatchMaking()
+
 
 @app.get('/')
 async def root():

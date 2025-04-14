@@ -1,6 +1,8 @@
-
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from typing import Dict, Optional, TypedDict
-from referee import Referee
+from pieces import *
 from server.illegal_match_access_error import IllegalMatchAccessException
 
 from uuid import uuid4
